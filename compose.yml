@@ -1,0 +1,62 @@
+services:
+  backend:
+    image: assignment-backend
+    container_name: assignment-backend
+    build:
+      context: ./backend
+    ports:
+      - 3000:3000
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: db_user
+      DB_PASS: 6equj5_db_user
+      DB_NAME: home_db
+      NODE_ENV: production
+
+  frontend:
+    build:
+      context: ./frontend
+      # args:
+      #   VITE_BASE_URL: ${VITE_BASE_URL}
+      target: final
+    image: assignment-frontend
+    container_name: assignment-frontend
+    stdin_open: true
+    depends_on:
+      - backend
+    ports:
+      - 4173:80
+    # volumes:
+    #   - nodemodules:/app/node_modules
+    # environment:
+    #   VITE_BASE_URL: http://backend:3000/api/
+
+  mysql:
+    image: assignment-mysql
+    build:
+      context: .
+      dockerfile: Dockerfile.final_db
+    container_name: assignment-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 6equj5_root
+      MYSQL_DATABASE: home_db
+      MYSQL_USER: db_user
+      MYSQL_PASSWORD: 6equj5_db_user
+    volumes:
+      - mysql_data:/var/lib/mysql:rw
+    ports:
+      - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pexample"]
+      interval: 30s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+
+volumes:
+  mysql_data:
+  nodemodules:
